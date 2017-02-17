@@ -66,7 +66,8 @@
 	text-decoration:underline;
 }
 
-#phylax_create_redirect .pbrapsel {
+#phylax_create_redirect .pbrapsel,
+#phylax_create_redirect .parapsel {
 	display:inline-block;
 	text-transform:uppercase;
 	color:rgba(64,64,64,.9);
@@ -79,7 +80,8 @@
 	cursor:pointer;
 }
 
-#phylax_create_redirect .pbrapsel.pbrapselact {
+#phylax_create_redirect .pbrapsel.pbrapselact,
+#phylax_create_redirect .parapsel.parapselact {
 	background-color:rgba(0,128,0,1);
 	color:rgba(255,255,255,1);
 	border:1px solid rgba(0,96,0,1);
@@ -91,10 +93,17 @@
 	display:block;
 	width:100%;
 }
+
+#lab_rap_adv_to>span{display:block;margin:0 0 3px 0;}
+
 #phylax_create_redirect{
 	display:none;
 }
 
-.phylax_rap_hide{
+.phylax_green{
+	color:rgba(0,160,0,1);
+	font-weight:600;
+}
+.phylax_hide{
 	x-display:none;
 }

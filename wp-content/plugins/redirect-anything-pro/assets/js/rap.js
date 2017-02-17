@@ -10,11 +10,11 @@ jQuery( document ).ready( function( $ ) {
 			activeHeader: 'phylax_enabled'
 		},
 		activate: function( event, ui ) {
-			inuse = ui.newHeader.data('rapinuse');
+			inuse = ui.newHeader.data('redirect_use');
 			if ( typeof inuse == 'undefined' ) {
 				inuse = 0;
 			}
-			$('#pbrap_in_use').val( inuse );
+			$('#phylax_redirect_use').val( inuse );
 		}
 	} );
 
@@ -22,6 +22,11 @@ jQuery( document ).ready( function( $ ) {
 		$('.pbrapsel').removeClass('pbrapselact');
 		$(this).addClass('pbrapselact');
 		$('#pbrapsel_select').val( $(this).attr('id') );
+	} );
+	$('.parapsel').on( 'click', function() {
+		$('.parapsel').removeClass('parapselact');
+		$(this).addClass('parapselact');
+		$('#parapsel_select').val( $(this).attr('id') );
 	} );
 
 	$('#rap_list_select select').on( 'change', function() {

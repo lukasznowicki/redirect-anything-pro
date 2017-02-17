@@ -1,13 +1,27 @@
-#phylax_create_redirect {
+#phylax-redirect-anything-pro {
 	font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
 }
 
-#phylax_create_redirect h3 {
-	font-weight:600;
-	font-size:13px;
+#phylax-redirect-anything-pro .inside p {
+	line-height:1.1;
+	margin:.5em 0;
 }
 
-#phylax_create_redirect h3>span {
+#phylax-redirect-anything-pro .inside small {
+	font-size:90%;
+}
+
+#phylax-redirect-anything-pro .inside ul {
+	margin:.5em 0;
+}
+
+#phylax-redirect-anything-pro .inside h3 {
+	font-weight:600;
+	font-size:13px;
+	margin:.5em 0;
+}
+
+#phylax-redirect-anything-pro h3>span {
 	display:inline-block;
 	width:8px;
 	height:8px;
@@ -15,7 +29,7 @@
 	border-radius:8px;
 }
 
-#phylax_create_redirect h3>span.phylax_disabled {
+#phylax-redirect-anything-pro h3>span.phylax_disabled {
 	border:1px solid #bbb;
 	background-color:#ddd;
 	-webkit-box-shadow: 0px 0px 2px 0px rgba(0,0,0,0.5);
@@ -23,10 +37,64 @@
 	box-shadow: 0px 0px 2px 0px rgba(0,0,0,0.5);
 }
 
-#phylax_create_redirect h3>span.phylax_enabled {
+#phylax-redirect-anything-pro h3>span.phylax_enabled {
 	border:1px solid #283;
 	background-color:#4a5;
 	-webkit-box-shadow: 0px 0px 2px 1px rgba(0,192,0,0.75);
 	-moz-box-shadow: 0px 0px 2px 1px rgba(0,192,0,0.75);
 	box-shadow: 0px 0px 2px 1px rgba(0,224,0,0.75);
+}
+
+#phylax_create_redirect>div {
+	border:1px solid rgba(0,160,0,.75);
+	background-color:rgba(0,255,0,.125);
+	padding:.25em .5em;
+}
+
+#phylax_create_redirect .ui-accordion-header {
+	color:rgba(48,48,48,.9);
+}
+#phylax_create_redirect .ui-accordion-header:hover {
+	color:rgba(0,0,0,1);
+}
+
+#phylax_create_redirect .ui-accordion-header-active {
+	color:rgba(0,128,0,1);
+}
+#phylax_create_redirect .ui-accordion-header-active:hover {
+	color:rgba(0,64,0,1);
+	text-decoration:underline;
+}
+
+#phylax_create_redirect .pbrapsel {
+	display:inline-block;
+	text-transform:uppercase;
+	color:rgba(64,64,64,.9);
+	background-color:rgba(240,240,240,1);
+	padding:3px 5px 4px 5px;
+	border:1px solid rgba(192,192,192,1);
+	font-size:75%;
+	line-height:1;
+	margin:0 0 2px 0;
+	cursor:pointer;
+}
+
+#phylax_create_redirect .pbrapsel.pbrapselact {
+	background-color:rgba(0,128,0,1);
+	color:rgba(255,255,255,1);
+	border:1px solid rgba(0,96,0,1);
+}
+
+#phylax_create_redirect label select,
+#phylax_create_redirect label input[type="text"] {
+	clear:both;
+	display:block;
+	width:100%;
+}
+#phylax_create_redirect{
+	display:none;
+}
+
+.phylax_rap_hide{
+	x-display:none;
 }

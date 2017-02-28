@@ -22,6 +22,8 @@ class Plugin {
 	private $screen;
 	private $nonce;
 	private $nonce_action;
+	private $list_post_type;
+	private $list_post_items;
 
 	function __construct() {
 		if ( is_admin() ) {
@@ -85,7 +87,17 @@ class Plugin {
 		] );
 	}
 
-	function get_posts_array( $post_type = 'post' ) {
+	function translate_post_items( $items ) {
+		if ( !is_array( $items ) ) { return []; }
+		if ( count( $items ) < 1 ) { return []; }
+		$r = [];
+		foreach( $items as $item ) {
+			$r[ $item->name ] = $item->label;
+		}
+		return $r;
+	}
+
+	function read_post_items( $post_type = 'post' ) {
 		$r = [];
 		$items = $this->get_posts( $post_type );
 		if ( is_array( $items ) && ( count( $items ) > 0 ) ) {
@@ -97,38 +109,14 @@ class Plugin {
 				$r[ $item->ID ] = $title;
 			}
 		}
-		return $r;
+		$this->list_post_items[ $post_type ] = $r;
 	}
 
-	function get_posts_option( $post_type = 'post', $current = 0 ) {
-		$html = '';
-		$items = $this->get_posts( $post_type );
-		if ( is_array( $items ) && ( count( $items ) > 0 ) ) {
-			foreach( $items as $item ) {
-				$title = trim( $item->post_title );
-				if ( '' == $title ) {
-					$title = get_permalink( $item->ID );
-				}
-				$html.= '<option value="' . $item->ID . '"' . ( ( $item->ID == $current ) ? ' selected="selected"' : '' ) . '>' . $title . '</option>' . PHP_EOL;
-			}
-		}
-		return $html;
-	}
-
-	function post_types_array( $items ) {
-		if ( !is_array( $items ) ) { return []; }
-		if ( count( $items ) < 1 ) { return []; }
-		$r = [];
-		foreach( $items as $item ) {
-			$r[ $item->name ] = $item->label;
-		}
-		return $r;
-	}
-
-	function get_post_types() {
-		$built_in = $this->post_types_array( get_post_types( [ 'public' => true, '_builtin' => true ], 'objects' ) );
-		$others = $this->post_types_array( get_post_types( [ 'public' => true, '_builtin' => false ], 'objects' ) );
-		return array_merge( $built_in, $others );
+	function read_post_types() {
+		$this->list_post_types = array_merge(
+			$this->translate_post_items( get_post_types( [ 'public' => true, '_builtin' => true ], 'objects' ) ),
+			$this->translate_post_items( get_post_types( [ 'public' => true, '_builtin' => false ], 'objects' ) )
+		);
 	}
 
 	function save_post( $post_id ) {
@@ -145,13 +133,8 @@ class Plugin {
 		$rap = [
 			'redirect_use' => esc_attr( $_POST['phylax_redirect_use'] ),
 			'basic' => [
-				'selector' => esc_attr( $_POST['pbrapsel_select'] ),
-				'direct' => esc_attr( $_POST['pbs_phylax_direct'] ),
-				'custom_posts' => $cpid,
 			],
 			'advanced' => [
-				'selector' => esc_attr( $_POST['parapsel_select'] ),
-				'direct' => esc_attr( $_POST['pas_phylax_direct'] ),
 			],
 		];
 		#echo '<pre>'.print_r($rap,true).'</pre>';
@@ -169,6 +152,31 @@ class Plugin {
 		return $rap;
 	}
 
+	function redirect_items_html( $slug, $select ) {
+		$s = '';
+		$s.= '<pre>'.print_r($select,true).'</pre>';
+		$s.= '<p>' . __( 'Redirect current item to:', TD ) . '</p>' . PHP_EOL;
+		$s.= '<ul id="list_select_' . $slug . '" class="phylax_list_select">' . PHP_EOL;
+		foreach( $this->list_post_types as $post_type_slug => $post_type_name ) {
+			$s.= '<li><span>' . $post_type_name . '</span>' . PHP_EOL;
+			$s.= '<select name="' . $slug . '[' . $post_type_slug . ']">' . PHP_EOL;
+			$current = 0;
+			if ( isset( $select[ $post_type_slug ] ) ) {
+				$current = $select[ $post_type_slug ];
+			}
+			foreach( $this->list_post_items[ $post_type_slug ] as $item_id => $item_name ) {
+				$s.= '<option value="' . $item_id . '"' . ( ( $current == $item_id ) ? ' selected="selected"' : '' ) . '>' . $item_name . '</option>' . PHP_EOL;
+			}
+			$s.= '</select>' . PHP_EOL;
+			$s.= '</li>' . PHP_EOL;
+		}
+		$s.= '<li><span>' . __( 'External link', TD ) . '</span>' . PHP_EOL;
+		$s.= '<input type="text" name="' . $slug . '[phylax_rap_external_link]">';
+		$s.= '</li>' . PHP_EOL;
+		$s.= '</ul>' . PHP_EOL;
+		return $s;
+	}
+
 	function rap_view( $post ) {
 		$rap = $this->get_post_meta( $post->ID );
 		$rap_active = 'false';
@@ -176,17 +184,11 @@ class Plugin {
 		if ( $rap['redirect_use'] == 'advanced' ) { $rap_active = 1; }
 
 		wp_nonce_field( $this->nonce_action, $this->nonce );
-		$page_items = [];
-		$post_types = $this->get_post_types();
-		foreach( $post_types as $post_type => $post_name ) {
-			$selector_name = 'pb%short_id%_' . $post_type;
-			$select_name = 'pb%short_id%_' . $post_type . '_id';
-			$page_items[ $post_type ] = $this->get_posts_array( $post_type );
+
+		$this->read_post_types();
+		foreach( $this->list_post_types as $post_type_slug => $post_type_name ) {
+			$this->read_post_items( $post_type_slug );
 		}
-
-		echo '<pre>'.print_r($rap,true).'</pre>';
-		echo '<pre>'.print_r($page_items,true).'</pre>';
-
 ?>
 		<p><small><?php _e( 'Here you can make this item redirect anywhere and whenever you want. Please select what you want to do, <span class="phylax_green">green</span> indicator on the left will let you know where you are.', TD ); ?></small></p>
 		<script type="text/javascript">
@@ -195,16 +197,16 @@ class Plugin {
 		<div id="phylax_create_redirect">
 			<h3 data-redirect_use="basic"><?php _e( 'Basic (simple)', TD ); ?></h3>
 			<div>
-				<p><?php _e( 'Redirect current item to:', TD ); ?></p>
-				<ul id="list_select_basic" class="phylax_list_select">
-				</ul>
+<?php
+	echo $this->redirect_items_html( 'basic', $rap['basic'] );
+?>
 			</div>
 			<h3 data-redirect_use="advanced"><?php _e( 'Advanced (conditional)', TD ); ?></h3>
 			<div>
 				<p><small><?php _e( 'So, I assume you are advanced user of WordPress. Then we give you a few more options but it is a bit trickier than in basic functionality. Of course it is much more powerful and flexible solution.', TD ); ?></small></p>
-				<p><?php _e( 'Redirect current item to:', TD ); ?></p>
-				<ul id="list_select_advanced" class="phylax_list_select">
-				</ul>
+<?php
+	echo $this->redirect_items_html( 'advanced', $rap['advanced'] );
+?>
 			</div>
 		</div>
 		<input class="phylax_hide" type="text" name="phylax_redirect_use" id="phylax_redirect_use" value="<?php echo $rap['redirect_use']; ?>">

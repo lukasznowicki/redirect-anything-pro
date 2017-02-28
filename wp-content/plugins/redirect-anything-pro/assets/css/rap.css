@@ -1,3 +1,16 @@
+#phylax_create_redirect{
+	display:none;
+}
+
+.phylax_hide{
+	x-display:none;
+}
+
+.phylax_green{
+	color:rgba(0,160,0,1);
+	font-weight:600;
+}
+
 #phylax-redirect-anything-pro {
 	font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
 }
@@ -66,44 +79,26 @@
 	text-decoration:underline;
 }
 
-#phylax_create_redirect .pbrapsel,
-#phylax_create_redirect .parapsel {
+.phylax_list_select>li>span {
 	display:inline-block;
+	padding:1px 4px 2px 4px;
+	margin:4px 0 3px 0;
+	border:1px solid rgba(0,128,0,1);
+	background-color:#fff;
+	color:#333;
 	text-transform:uppercase;
-	color:rgba(64,64,64,.9);
-	background-color:rgba(240,240,240,1);
-	padding:3px 5px 4px 5px;
-	border:1px solid rgba(192,192,192,1);
-	font-size:75%;
-	line-height:1;
-	margin:0 0 2px 0;
-	cursor:pointer;
+	letter-spacing:1px;
+	font-size:80%;
 }
 
-#phylax_create_redirect .pbrapsel.pbrapselact,
-#phylax_create_redirect .parapsel.parapselact {
-	background-color:rgba(0,128,0,1);
-	color:rgba(255,255,255,1);
-	border:1px solid rgba(0,96,0,1);
+.phylax_list_select>li:first-child>span {
+	margin-top:0;
 }
 
-#phylax_create_redirect label select,
-#phylax_create_redirect label input[type="text"] {
-	clear:both;
+.phylax_list_select>li>select,
+.phylax_list_select>li>input[type="text"] {
 	display:block;
+	padding:1px 3px 2px 3px;
+	margin:0;
 	width:100%;
-}
-
-#lab_rap_adv_to>span{display:block;margin:0 0 3px 0;}
-
-#phylax_create_redirect{
-	display:none;
-}
-
-.phylax_green{
-	color:rgba(0,160,0,1);
-	font-weight:600;
-}
-.phylax_hide{
-	x-display:none;
 }

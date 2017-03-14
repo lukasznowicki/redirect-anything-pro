@@ -119,51 +119,70 @@ class Plugin {
 		);
 	}
 
+	function filter_post_array( $key ) {
+		if ( !isset( $_POST[ $key ] ) || !is_array( $_POST[ $key ] ) ) {
+			$_POST[ $key ] = [];
+		}
+		foreach( $_POST[ $key ] as $item_slug => $item_id ) {
+			if ( $item_slug == 'phylax_rap_external_link' ) {
+				$_POST[ $key ][ $item_slug ] = esc_url( $item_id );
+			} else {
+				$_POST[ $key ][ $item_slug ] = (int)$item_id;
+			}
+		}
+	}
+
 	function save_post( $post_id ) {
 		if ( !isset( $_POST[ $this->nonce ] ) ) { return; }
 		if ( !wp_verify_nonce( $_POST[ $this->nonce ], $this->nonce_action ) ) { return; }
 		if ( !post_type_exists( $_POST['post_type'] ) ) { return; }
 		if ( !current_user_can( 'edit_post', $post_id ) ) { return; }
-		$cpid = [];
-		foreach( $_POST as $key => $value ) {
-			if ( ( substr( $key, 0, 4 ) == 'pbs_' ) && ( substr( $key, -3 ) == '_id' ) ) {
-				$cpid[ $key ] = (int)$value;
-			}
+		if ( !isset( $_POST['phylax_redirect_use'] ) || (
+		   		( $_POST['phylax_redirect_use'] != '0' ) &&
+				( $_POST['phylax_redirect_use'] != 'basic' ) &&
+				( $_POST['phylax_redirect_use'] != 'advanced' ) ) ) {
+			$_POST['phylax_redirect_use'] = 0;
 		}
+		$this->filter_post_array( 'phylax_list_basic' );
+		$this->filter_post_array( 'phylax_list_advanced' );
+		#echo '<p>post id: <b>' . $post_id . '</b></p>';echo '<pre>'.print_r($_POST,true).'</pre>';die;
 		$rap = [
-			'redirect_use' => esc_attr( $_POST['phylax_redirect_use'] ),
-			'basic' => [
-			],
-			'advanced' => [
-			],
+			'basic' => $_POST['phylax_list_basic'],
+			'advanced' => $_POST['phylax_list_advanced'],
 		];
-		#echo '<pre>'.print_r($rap,true).'</pre>';
-		#echo '<pre>'.print_r($_POST,true).'</pre>';
-		#die('OK!');
-		#update_post_meta( $post_id, 'phylax_redirect_anything_pro', $rap );
+		update_post_meta( $post_id, 'phylax_redirect_anything_pro_use', $_POST['phylax_redirect_use'] );
+		update_post_meta( $post_id, 'phylax_redirect_anything_pro', $rap );
 	}
 
 	function get_post_meta( $id ) {
+		$use = get_post_meta( $id, 'phylax_redirect_anything_pro_use', true );
+		if ( '' == $use ) { $use = 0; }
 		$rap = get_post_meta( $id, 'phylax_redirect_anything_pro', true );
-		if ( !isset( $rap['redirect_use'] ) ) { $rap['redirect_use'] = '0'; }
-		if ( !isset( $rap['basic'] ) ) { $rap['basic'] = []; }
-		if ( !isset( $rap['advanced'] ) ) { $rap['advanced'] = []; }
-
+		if ( '' == $rap ) {
+			$rap = [
+				'use' => $use,
+				'basic' => [],
+				'advanced' => [],
+			];
+		} else {
+			$rap['use'] = $use;
+			if ( !isset( $rap['basic'] ) ) { $rap['basic'] = []; }
+			if ( !isset( $rap['advanced'] ) ) { $rap['advanced'] = []; }
+		}
 		return $rap;
 	}
 
 	function redirect_items_html( $slug, $select ) {
 		$s = '';
-		$s.= '<pre>'.print_r($select,true).'</pre>';
 		$s.= '<p>' . __( 'Redirect current item to:', TD ) . '</p>' . PHP_EOL;
 		$s.= '<ul id="list_select_' . $slug . '" class="phylax_list_select">' . PHP_EOL;
 		foreach( $this->list_post_types as $post_type_slug => $post_type_name ) {
-			$s.= '<li><span>' . $post_type_name . '</span>' . PHP_EOL;
-			$s.= '<select name="' . $slug . '[' . $post_type_slug . ']">' . PHP_EOL;
 			$current = 0;
 			if ( isset( $select[ $post_type_slug ] ) ) {
 				$current = $select[ $post_type_slug ];
 			}
+			$s.= '<li><span>' . $post_type_name . '</span>' . PHP_EOL;
+			$s.= '<select name="phylax_list_' . $slug . '[' . $post_type_slug . ']">' . PHP_EOL;
 			foreach( $this->list_post_items[ $post_type_slug ] as $item_id => $item_name ) {
 				$s.= '<option value="' . $item_id . '"' . ( ( $current == $item_id ) ? ' selected="selected"' : '' ) . '>' . $item_name . '</option>' . PHP_EOL;
 			}
@@ -171,7 +190,11 @@ class Plugin {
 			$s.= '</li>' . PHP_EOL;
 		}
 		$s.= '<li><span>' . __( 'External link', TD ) . '</span>' . PHP_EOL;
-		$s.= '<input type="text" name="' . $slug . '[phylax_rap_external_link]">';
+		$v = '';
+		if ( isset( $select['phylax_rap_external_link'] ) ) {
+			$v = esc_url( $select['phylax_rap_external_link'] );
+		}
+		$s.= '<input type="text" name="phylax_list_' . $slug . '[phylax_rap_external_link]" value="' . $v . '">';
 		$s.= '</li>' . PHP_EOL;
 		$s.= '</ul>' . PHP_EOL;
 		return $s;
@@ -180,8 +203,9 @@ class Plugin {
 	function rap_view( $post ) {
 		$rap = $this->get_post_meta( $post->ID );
 		$rap_active = 'false';
-		if ( $rap['redirect_use'] == 'basic' ) { $rap_active = 0; }
-		if ( $rap['redirect_use'] == 'advanced' ) { $rap_active = 1; }
+		if ( $rap['use'] === 'basic' ) { $rap_active = 0; }
+		if ( $rap['use'] === 'advanced' ) { $rap_active = 1; }
+		echo 'RU: ' . $rap['use'] . ', RA: ' . $rap_active . '<br />';
 
 		wp_nonce_field( $this->nonce_action, $this->nonce );
 
@@ -209,7 +233,7 @@ class Plugin {
 ?>
 			</div>
 		</div>
-		<input class="phylax_hide" type="text" name="phylax_redirect_use" id="phylax_redirect_use" value="<?php echo $rap['redirect_use']; ?>">
+		<input class="phylax_hide" type="text" name="phylax_redirect_use" id="phylax_redirect_use" value="<?php echo $rap['use']; ?>">
 <?php
 	}
 
